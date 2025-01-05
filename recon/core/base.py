@@ -4,7 +4,7 @@ from datetime import datetime
 from pathlib import Path
 from urllib.parse import urljoin
 import errno
-import imp
+from importlib.machinery import SourceFileLoader
 import json
 import os
 import random
@@ -105,18 +105,16 @@ class Recon(framework.Framework):
         if self._check:
             pattern = r"'(\d+\.\d+\.\d+[^']*)'"
             remote = 0
-            local = 0
             try:
                 remote = re.search(pattern, self.request('GET', 'https://raw.githubusercontent.com/lanmaster53/recon-ng/master/VERSION').text).group(1)
-                local = re.search(pattern, open('VERSION').read()).group(1)
             except Exception as e:
                 self.error(f"Version check failed ({type(e).__name__}).")
                 #self.print_exception()
-            if remote != local:
+            if remote != __version__:
                 self.alert('Your version of Recon-ng does not match the latest release.')
                 self.alert('Please consider updating before further use.')
                 self.output(f"Remote version:  {remote}")
-                self.output(f"Local version:   {local}")
+                self.output(f"Local version:   {__version__}")
         else:
             self.alert('Version check disabled.')
 
@@ -181,7 +179,7 @@ class Recon(framework.Framework):
             'Don\'t you think if that worked the numbers would at least be in order?',
             'Reserving that option for the next-NEXT generation of the framework.',
             'You\'ve clearly got the wrong framework. Attempting to start SET...',
-            '1980 called. They want there menu driven UI back.',
+            '1980 called. They want their menu driven UI back.',
         ]
         print(random.choice(eggs))
         return
@@ -469,7 +467,7 @@ class Recon(framework.Framework):
         mod_file = open(mod_loadpath)
         try:
             # import the module into memory
-            mod = imp.load_source(mod_loadname, mod_loadpath, mod_file)
+            mod = SourceFileLoader(mod_loadname, mod_loadpath).load_module()
             __import__(mod_loadname)
             # add the module to the framework's loaded modules
             self._loaded_modules[mod_dispname] = sys.modules[mod_loadname].Module(mod_dispname)
