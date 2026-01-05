@@ -7,6 +7,7 @@ import os
 import requests
 import unicodecsv as csv
 import xlsxwriter
+import logging
 
 def _jsonify(rows):
     return jsonify(rows=[dict(r) for r in rows])
@@ -95,7 +96,8 @@ def proxify(rows):
                         resp = requests.request('GET', url, **kwargs)
                         msg += f"HTTP {resp.status_code}: Successfully proxied."
                     except Exception as e:
-                        msg += str(e)
+                        logging.exception("Error while proxying URL %s", url)
+                        msg += 'Error: Failed to proxy request.'
                 else:
                     msg += 'Error: Failed URL validation.'
                 msg += os.linesep*2
